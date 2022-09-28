@@ -1,0 +1,61 @@
+.visualizationDiv {
+  /* border: 1px solid red; */
+  width: 58.5%;
+  margin: auto;
+  height: 45%;
+  min-height: 450px;
+  background-color: black;
+  border-radius: 10px;
+  position: relative;
+}
+.eye {
+  border-radius: 100%;
+  position: absolute;
+}
+#leftEye {
+  border: 1px solid blue;
+}
+#rightEye {
+}
+#leftEyeWrap {
+  position: absolute;
+  /* border: 1px solid blue; */
+}
+#rightEyeWrap {
+  position: absolute;
+  /* border: 1px solid blue; */
+}
+
+.eyeCenter {
+  width: 15px;
+  height: 15px;
+  /* border-radius: 45%; */
+  /* border: 1px solid white; */
+  color: white;
+  text-align: center;
+  align-content: center;
+  font-size: 11px;
+  
+}
+#leftEyeCenter {
+  position: absolute;
+  left: 25%;
+  top: 24%;
+}
+#rightEyeCenter {
+  position: absolute;
+  left: 75%;
+  top: 24%;
+}
+
+.faceCenter {
+  position: absolute;
+  color: white;
+  width: 20px;
+  /* border: 1px solid red; */
+  text-align: center;
+}
+.faceCenter img {
+  width: 30px;
+  height: 30px;
+}
