@@ -23,8 +23,10 @@ const SppHeatMap = ({
     for (let i = 0; i < dataArray.length; i++) {
       const element = dataArray[i];
       localArray.push({
-        x: element.eye_Data[eye === 1 ? 8 : 10],
-        y: element.eye_Data[eye === 1 ? 9 : 11],
+        x: element.eye_Data[3],
+        y: element.eye_Data[4],
+        // x: element.eye_Data[eye === 1 ? 8 : 10],
+        // y: element.eye_Data[eye === 1 ? 9 : 11],
       });
     }
     localArray = localArray.slice(bottomLimit || 0, playIndex);
@@ -33,8 +35,13 @@ const SppHeatMap = ({
     heatMapS = standardHeatMapCreator();
     drawTheStandardHeatmap(heatMapS);
   }, [playIndex]);
-
+  var xMin = -0.8;
+  var xMax = 0.8;
+  var yMin = -0.6;
+  var yMax = 0.3;
   function peekHeatMapCreator() {
+    let centerAvgCounter = 0;
+    let centerAvg = 0;
     let heatMapCounter = [];
     for (let a = 0; a < cellsY * cellsX; a++) {
       heatMapD.push(0);
@@ -42,15 +49,19 @@ const SppHeatMap = ({
     }
     var lastLocX = -10;
     var lastLocY = -10;
-    var xMin = -0.6;
-    var xMax = 0.6;
-    var yMin = -0.6;
-    var yMax = 0.3;
+
     let boxSize = 4;
+    for (let w = 0; w < localArray.length; w++) {
+      if (Math.abs(localArray[w].x) < 0.25) {
+        centerAvgCounter++;
+        centerAvg += localArray[w].x;
+      }
+    }
+    centerAvg /= centerAvgCounter;
     // console.log("eyeDataArray", localArray);
     for (let w = 0; w < localArray.length; w++) {
       let currentEye = { x: 0, y: 0 };
-      if (localArray[w].x > -99) {
+      if (localArray[w].x > -99 && Math.abs(localArray[w].x - centerAvg) > 0.15) {
         currentEye.x = Math.round(
           ((localArray[w].x - xMin) / (xMax - xMin)) * (cellsX - 1)
         );
@@ -103,7 +114,7 @@ const SppHeatMap = ({
         lastLocY = locY;
       }
     }
-
+    console.log("avg", centerAvg);
     //
     let sppMin = 5 * (boxSize + 1);
     let sppMax = 10 * (boxSize + 1);
@@ -115,7 +126,10 @@ const SppHeatMap = ({
       const element = heatMapD[index];
       heatMapD[index] =
         element > sppMax ? element - (element - sppMax) * stepDown : element;
-      heatMapD[index] = Math.max(0, element - heatMapCounter[index] * 0.3);
+      heatMapD[index] = Math.max(
+        0,
+        heatMapD[index] - heatMapCounter[index] * 0.3
+      );
       //heatMapD[index] =  element <= sppMax ?  Math.min(255, element * stepUp) : Math.max(0, 255 - (element - sppMax)*stepDown);
       heatMapD[index] *= 5;
     }
@@ -127,10 +141,7 @@ const SppHeatMap = ({
   }
   function standardHeatMapCreator() {
     for (let a = 0; a < cellsYs * cellsXs; a++) heatMapS.push(0);
-    var xMin = -0.6;
-    var xMax = 0.6;
-    var yMin = -0.6;
-    var yMax = 0.3;
+
     //console.log("eyeDataArray", localArray);
     for (let w = 0; w < localArray.length; w++) {
       let currentEye = { x: 0, y: 0 };

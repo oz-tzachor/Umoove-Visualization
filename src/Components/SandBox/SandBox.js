@@ -8,10 +8,13 @@ import { mainDataArray } from "../../files/try";
 import SppHeatMap from "../SppHeatMap/SppHeatMap";
 import { dataContext } from "../../context/manageContext";
 const Sandbox = () => {
+  let showCombined = true;
   const data = useContext(dataContext);
   const sandBoxRef = useRef();
   const leftEyeCenterRef = useRef();
   const rightEyeCenterRef = useRef();
+  const combinedEyeCenterRef = useRef();
+  const combinedWrapRef = useRef();
   const wrapLeftRef = useRef();
   const wrapRightRef = useRef();
   const [pxToCm, setPxToCm] = useState(1);
@@ -30,6 +33,9 @@ const Sandbox = () => {
   const [leftEyeY, setLeftEyeY] = useState(72);
   const [rightEyeX, setRightEyeX] = useState(55);
   const [rightEyeY, setRightEyeY] = useState(72);
+  const [combinedEyeNotVisible, setCombinedEyeNotVisible] = useState(false);
+  const [combinedEyeX, setCombinedEyeX] = useState(72);
+  const [combinedEyeY, setCombinedEyeY] = useState(72);
   const [trackFace, setTrackFace] = useState(false);
   const [faceX, setfaceEyeX] = useState(55);
   const [faceY, setFaceY] = useState(72);
@@ -41,22 +47,22 @@ const Sandbox = () => {
   const [questionNum, setQuestionNum] = useState(1);
   const [topLimit, setTopLimit] = useState(false);
   const [bottomLimit, setBottomLimit] = useState(0);
-  const [intervalSpeed, setIntervalSpeed] = useState(66);
+  const [intervalSpeed, setIntervalSpeed] = useState(10);
   let changeQuestionNum = (type) => {
     stopInterval();
     if (type === "next") {
       if (questionNum < data.data?.questions?.length) {
         setQuestionNum((prev) => prev + 1);
         setPlayIndex(0);
-        setDataArray(data.data.questions[questionNum].eye_data);
+        setDataArray(data.data.questions[questionNum ].eye_data);
         setTopLimit(data.data.questions[questionNum].eye_data.length);
       }
     } else if (type === "prev") {
       if (questionNum > 1) {
         setQuestionNum((prev) => prev - 1);
         setPlayIndex(0);
-        setDataArray(data.data.questions[questionNum].eye_data);
-        setTopLimit(data.data.questions[questionNum].eye_data.length);
+        setDataArray(data.data.questions[questionNum ].eye_data);
+        setTopLimit(data.data.questions[questionNum ].eye_data.length);
       }
     }
   };
@@ -91,6 +97,8 @@ const Sandbox = () => {
     let UM_leftEyeY = dataArray[index].eye_Data[data.cmMode ? 9 : 15];
     let UM_rightEyeX = dataArray[index].eye_Data[data.cmMode ? 10 : 16];
     let UM_rightEyeY = dataArray[index].eye_Data[data.cmMode ? 11 : 17];
+    let UM_combinedEyeX = dataArray[index].eye_Data[3];
+    let UM_combinedEyeY = dataArray[index].eye_Data[4];
     let UM_faceX = dataArray[index].eye_Data[1];
     let UM_faceY = dataArray[index].eye_Data[2];
     //reliability
@@ -159,6 +167,16 @@ const Sandbox = () => {
         setRightEyeY(newY);
         setRightEyeNotVisible(false);
       }
+      //combined eye
+      if (UM_combinedEyeX === -99 || UM_combinedEyeY === -99) {
+        setCombinedEyeNotVisible(true);
+      } else {
+        let newX = eyesLoc?.combined?.x + UM_combinedEyeX * pxToCm;
+        setCombinedEyeX(newX);
+        let newY = eyesLoc?.combined?.y + UM_combinedEyeY * pxToCm;
+        setCombinedEyeY(newY);
+        setCombinedEyeNotVisible(false);
+      }
     }
     //
   };
@@ -201,6 +219,14 @@ const Sandbox = () => {
         y:
           rightEyeCenterRef.current.offsetTop +
           rightEyeCenterRef.current.clientHeight / 2,
+      },
+      combined: {
+        x:
+          combinedEyeCenterRef.current.offsetLeft +
+          combinedEyeCenterRef.current.clientWidth / 2,
+        y:
+          combinedEyeCenterRef.current.offsetTop +
+          combinedEyeCenterRef.current.clientHeight / 2,
       },
     });
     let fact =
@@ -342,17 +368,66 @@ const Sandbox = () => {
               x
             </div>
           )}
+          {data.cmMode && showCombined && (
+            <div
+              id="combinedWrap"
+              ref={combinedWrapRef}
+              style={{
+                left:
+                  eyesLoc?.combined?.x -
+                  combinedWrapRef.current?.clientWidth / 2 +
+                  "px",
+                top: eyesLoc?.combined?.y - wrapWidth / 3 + "px",
+                width: wrapWidth,
+                height: wrapWidth / 2,
+                border: "1px solid",
+                borderColor: combinedEyeNotVisible ? "red" : "white",
+              }}
+            ></div>
+          )}
+          {data.cmMode && showCombined && (
+            <div
+              className="eye"
+              id="combinedEye"
+              style={{
+                left: combinedEyeX - eyeWidth / 2 + "px",
+                top: combinedEyeY - eyeWidth / 2 + "px",
+                height: eyeWidth,
+                width: eyeWidth,
+                border: "1px solid",
+                borderColor:
+                  combinedEyeNotVisible && data.cmMode
+                    ? "white"
+                    : !data.cmMode && combinedEyeNotVisible
+                    ? "red"
+                    : "white",
+                visibility:
+                combinedEyeNotVisible && data.cmMode ? "hidden" : "visible",
+              }}
+            ></div>
+          )}
+          {data.cmMode && showCombined && (
+            <div
+              className="eyeCenter "
+              id="combinedEyeCenter"
+              ref={combinedEyeCenterRef}
+            >
+              c
+            </div>
+          )}
           {!data.cmMode && (
             <div
               className="faceCenter"
               style={{
                 left: faceX - eyeWidth / 2 + "px",
-                top: faceY - eyeWidth / 2 + "px",height: eyeWidth, width: eyeWidth
+                top: faceY - eyeWidth / 2 + "px",
+                height: eyeWidth,
+                width: eyeWidth,
               }}
             >
               <img
                 src={trackFace ? plusIcon : plusRedIcon}
-                style={{ height: '100%', width:'100%' }}
+                style={{ height: "100%", width: "100%" }}
               />
             </div>
           )}
