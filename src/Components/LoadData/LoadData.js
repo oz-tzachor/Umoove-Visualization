@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import "./LoadData.css";
 import { dataContext } from "../../context/manageContext";
-const LoadData = () => {
+const LoadData = ({onStudentsLoaded}) => {
   const [students, setStudents] = useState(false);
   const [load, setLoad] = useState(true);
   const data = useContext(dataContext);
@@ -13,6 +13,7 @@ const LoadData = () => {
     let res = await req.json();
     console.log("res", res);
     setStudents(res);
+    // onStudentsLoaded(res)
     setLoad(false);
   };
   let loadStudentData = async (_id) => {

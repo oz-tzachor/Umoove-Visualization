@@ -1,0 +1,9 @@
+.studentDetails{
+    cursor: pointer;
+    background-color: lightblue;
+}
+.studentDetails:hover{
+    cursor: pointer;
+    background-color: rgb(36, 106, 153);
+    color: black;
+}

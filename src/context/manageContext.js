@@ -9,6 +9,8 @@ export const DataProvider = ({ children }) => {
   const [userLoaded, setUserLoaded] = useState(false);
   const [data, setData] = useState(false);
   const [cmMode, setCmMode] = useState(true);
+  const [selectedMethod, setSelectedMethod] = useState('analyze');
+
 
   // function updateUserDetails(updatedUserDetails) {
   //   setUserDetails(updatedUserDetails);
@@ -19,7 +21,7 @@ export const DataProvider = ({ children }) => {
   };
   return (
     <dataContext.Provider
-      value={{ data, setData, userLoaded, setUserLoaded, setMode, cmMode }}
+      value={{ data, setData, userLoaded, setUserLoaded, setMode, cmMode,selectedMethod,setSelectedMethod }}
     >
       {children}
     </dataContext.Provider>

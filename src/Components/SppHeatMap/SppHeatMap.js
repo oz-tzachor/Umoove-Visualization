@@ -7,6 +7,8 @@ const SppHeatMap = ({
   type,
   bottomLimit,
   eyesReliability,
+  mode,
+  onProccessDone,
 }) => {
   const canvasRef = useRef();
   const canvasRef1 = useRef();
@@ -32,16 +34,21 @@ const SppHeatMap = ({
     localArray = localArray.slice(bottomLimit || 0, playIndex);
     heatMapD = peekHeatMapCreator();
     drawTheHeatmap(heatMapD);
-    heatMapS = standardHeatMapCreator();
-    drawTheStandardHeatmap(heatMapS);
+    if (mode !== "analyze") {
+      heatMapS = standardHeatMapCreator();
+      drawTheStandardHeatmap(heatMapS);
+    }
   }, [playIndex]);
   var xMin = -0.8;
   var xMax = 0.8;
   var yMin = -0.6;
   var yMax = 0.3;
+  let areasResults = {};
   function peekHeatMapCreator() {
-    let centerAvgCounter = 0;
-    let centerAvg = 0;
+    let centerAvgCounterX = 0;
+    let centerAvgX = 0;
+    let centerAvgCounterY = 0;
+    let centerAvgY = 0;
     let heatMapCounter = [];
     for (let a = 0; a < cellsY * cellsX; a++) {
       heatMapD.push(0);
@@ -53,22 +60,41 @@ const SppHeatMap = ({
     let boxSize = 4;
     for (let w = 0; w < localArray.length; w++) {
       if (Math.abs(localArray[w].x) < 0.25) {
-        centerAvgCounter++;
-        centerAvg += localArray[w].x;
+        centerAvgCounterX++;
+        centerAvgX += localArray[w].x;
+        centerAvgCounterY++;
+        centerAvgY += localArray[w].y;
       }
     }
-    centerAvg /= centerAvgCounter;
+    centerAvgX /= centerAvgCounterX;
+    centerAvgY /= centerAvgCounterY;
+    let centerAvgs = { x: 0, y: 0 };
+    centerAvgs.x = Math.round(
+      ((centerAvgX - xMin) / (xMax - xMin)) * (cellsX - 1)
+    );
+    centerAvgs.y = Math.round(
+      ((centerAvgY - yMin) / (yMax - yMin)) * (cellsY - 1)
+    );
+    //calc center
+    let centerPosX =
+      centerAvgs.x < 0 ? 0 : centerAvgs.x >= cellsX ? cellsX - 1 : centerAvgs.x;
+    let centerPosY =
+      centerAvgs.y < 0 ? 0 : centerAvgs.y >= cellsY ? cellsY - 1 : centerAvgs.y;
+    // let centerPos = centerPosY * cellsX + centerPosX;
+    //
     // console.log("eyeDataArray", localArray);
     for (let w = 0; w < localArray.length; w++) {
       let currentEye = { x: 0, y: 0 };
-      if (localArray[w].x > -99 && Math.abs(localArray[w].x - centerAvg) > 0.15) {
+      if (
+        localArray[w].x > -99 &&
+        Math.abs(localArray[w].x - centerAvgX) > 0.15
+      ) {
         currentEye.x = Math.round(
           ((localArray[w].x - xMin) / (xMax - xMin)) * (cellsX - 1)
         );
         currentEye.y = Math.round(
           ((localArray[w].y - yMin) / (yMax - yMin)) * (cellsY - 1)
         );
-
         let locX =
           currentEye.x < 0
             ? 0
@@ -90,7 +116,6 @@ const SppHeatMap = ({
         //   heatMapD[pos] = heatMapD[pos] < 0 ? 0 : heatMapD[pos];
         // } else if (w < localArray.length - 5) {
         //1D array
-
         // heatMapD[pos] += 1;
 
         for (let j = -boxSize; j <= boxSize; j++) {
@@ -101,20 +126,17 @@ const SppHeatMap = ({
                 heatMapD[p] += boxSize + 1;
                 heatMapD[p] = Math.min(heatMapD[p], (boxSize + 1) * 15);
               }
-
               // heatMapCounter[p] += (((boxSize+1) - Math.abs(i)) +((boxSize+1) - Math.abs(j)))/2;
               heatMapCounter[p] += boxSize + 1;
             }
           }
         }
-
         // }
-
         lastLocX = locX;
         lastLocY = locY;
       }
     }
-    console.log("avg", centerAvg);
+    console.log("avg", centerAvgX);
     //
     let sppMin = 5 * (boxSize + 1);
     let sppMax = 10 * (boxSize + 1);
@@ -133,6 +155,52 @@ const SppHeatMap = ({
       //heatMapD[index] =  element <= sppMax ?  Math.min(255, element * stepUp) : Math.max(0, 255 - (element - sppMax)*stepDown);
       heatMapD[index] *= 5;
     }
+    let leftTop = 0;
+    let leftBottom = 0;
+    let rightTop = 0;
+    let rightBottom = 0;
+    let logItOut = false;
+
+    for (let index = 0; index < heatMapCounter.length; index++) {
+      let value = heatMapCounter[index];
+      if (value > 0) {
+        let x = 101;
+      }
+      let lX = index % cellsX;
+      let lY = Math.floor(index / cellsX);
+      let xDiff = lX - centerPosX;
+      let yDiff = lY - centerPosY;
+      if (index > 100) {
+        ///
+        let y = 1;
+      }
+      let higherNum = 0;
+      let lowerNum = 0;
+      if (xDiff >= higherNum && yDiff >= higherNum) {
+        //right Bottom
+        rightBottom += value;
+      } else if (xDiff >= higherNum && yDiff < lowerNum) {
+        //right top
+        rightTop += value;
+      } else if (xDiff < lowerNum && yDiff < lowerNum) {
+        //left top
+        leftTop += value;
+      } else if (xDiff < lowerNum && yDiff >= higherNum) {
+        //left bottom
+        leftBottom += value;
+      }
+    }
+    areasResults = {
+      ...areasResults,
+      rightBottom,
+      rightTop,
+      leftBottom,
+      leftTop,
+    };
+    if (logItOut) {
+      // console.table({ leftTop, leftBottom, rightTop, rightBottom });
+    }
+
     return heatMapD;
   }
 
@@ -194,6 +262,11 @@ const SppHeatMap = ({
       }
     }
   }
+  function convertCanvasToImage(canvas) {
+    let image = new Image();
+    image.src = canvas.toDataURL();
+    return image;
+  }
   function drawTheStandardHeatmap(mHeatmap) {
     let cellWidth = Math.round(canvasWidth / cellsXs);
     let cellHeight = Math.round(canvasHeight / cellsYs);
@@ -211,6 +284,9 @@ const SppHeatMap = ({
       if (posX == cellsXs) {
         posX = 0;
         posY++;
+      }
+      if (i === 100) {
+        // console.log(convertCanvasToImage(ctx));
       }
     }
   }

@@ -442,7 +442,7 @@ const Sandbox = () => {
           </ul>
         </div>
 
-        <div style={{ border: "3px solid white" }}>
+        {/* <div style={{ border: "3px solid white" }}>
           <SppHeatMap
             eye={2}
             eyesReliability={eyesReliability}
@@ -451,7 +451,7 @@ const Sandbox = () => {
             bottomLimit={bottomLimit}
             style={{ margin: "auto" }}
           />
-        </div>
+        </div> */}
       </div>
       <div style={{ display: "flex" }}>
         <Controls
